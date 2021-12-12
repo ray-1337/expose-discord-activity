@@ -43,6 +43,7 @@ ws.on("message", (raw) => {
 
   // failed parsing the JSON, well just break it.
   if (!data) return;
+  // console.log(data);
 
   // Ready
   if (data.t === "READY" && data.op === config.OP.dispatch) {

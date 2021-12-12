@@ -27,7 +27,7 @@ module.exports = {
 module.exports.Identification = {
   token: process.env.SECRET, // your bot token.
   v: 9, // https://discord.com/developers/docs/topics/gateway#gateways-gateway-versions
-  intents: 1 << 0 | 1 << 1 | 1 << 8 | 1 << 9, // https://discord.com/developers/docs/topics/gateway#list-of-intents
+  intents: 1 << 1 | 1 << 8, // https://discord.com/developers/docs/topics/gateway#list-of-intents
   properties: {
     "$os": process.platform,
     "$browser": "EXPOSE_ACTIVITIES",
