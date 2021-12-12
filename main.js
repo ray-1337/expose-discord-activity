@@ -4,7 +4,7 @@ const config = require("./config");
 // supported non-browser (for Server-side) only.
 const ws = new WebSocket(`wss://gateway.discord.gg/?v=${config.Identification.v}&encoding=json`);
 
-// ========================================================== REMOVE THIS SECTION BELOW IF UNNEEEDED.
+// ========================================================== REMOVE THIS SECTION BELOW IF UNNEEDED.
 const redis = require("redis").createClient({
   socket: {
     host: process.env["REDISENDPOINT"],
@@ -18,7 +18,7 @@ redis
 .on("error", (err) => console.error(`Redis (Error): ${err}`))
 .on("warning", (x) => console.warn(`Redis (Warning): ${x}`))
 .connect();
-// ========================================================== REMOVE THIS SECTION ABOVE IF UNNEEEDED.
+// ========================================================== REMOVE THIS SECTION ABOVE IF UNNEEDED.
 
 ws.on("open", () => {
   let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
@@ -27,7 +27,7 @@ ws.on("open", () => {
   // identification
   ws.send(identifyRequest, (err) => console.error(err));
 
-  // heartbeat, stay connected (?)
+  // heartbeat, to stay connected.
   setInterval(() => ws.send(heartbeat), config.Constants.heartbeatTimeout);
 });
 
@@ -43,6 +43,25 @@ ws.on("message", (raw) => {
 
   // failed parsing the JSON, well just break it.
   if (!data) return;
+
+  // Ready
+  if (data.t === "READY" && data.op === config.OP.dispatch) {
+    config.Constants.sessionID = data.d.session_id;
+    console.log("ready.");
+  };
+
+  // Resuming when Disconnection happens (WIP, may broke, because it's untested.)
+  if (data.op === config.OP.resume) {
+    console.log("resuming.");
+    ws.send(JSON.stringify({
+      op: config.OP.resume,
+      d: {
+        token: config.Identification.token,
+        session_id: config.Constants.sessionID,
+        seq: config.Constants.seq
+      }
+    }));
+  };
 
   /* 
     its your choice.

@@ -17,8 +17,11 @@ module.exports = {
     heartbeatTimeout: 1000 * 30,
 
     // https://www.remote.tools/remote-work/how-to-find-discord-id
-    userMonitoredID: "331265944363991042"
-  }
+    userMonitoredID: "331265944363991042",
+
+    // for resuming. so your app wont ded immediately, so you have to send the request again. (afaik)
+    sessionID: null
+  },
 };
 
 module.exports.Identification = {

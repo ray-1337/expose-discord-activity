@@ -2,18 +2,18 @@
 Expose user Discord presence/activities through your bot. (*May require Guild Members/Presences Intents*)
 
 ## About the Repo
-This is a D.I.Y (Do It Yourself) repo.
-Modify this repo to anything you want.
+This is a D.I.Y (Do It Yourself) repo. <br>
+Modify this repo to anything you want. <br>
 You can use it for REST APIs, like... literally any.
 
 ## Why?
-There was a repo called [lanyard](https://github.com/Phineas/lanyard) which you can expose your Discord activities but I'm not a pro of Elixir.
-Also, I don't want to join their server just for exposing your own activities.
-So I'll just remake it on Node.js instead, and release it to the public.
+There was a repo called [lanyard](https://github.com/Phineas/lanyard) which you can expose your Discord activities but I'm not a pro of Elixir. <br>
+Also, I don't want to join their server just for exposing your own activities. <br>
+So I'll just remake it on Node.js instead, and release it to the public. <br>
 This was supposed to be a personal use, for example my personal website.
 
 ## Journey
-It took me an hour to understand their [docs](https://discord.com/developers/docs/topics/gateway).
+It took me an hour to understand their [docs](https://discord.com/developers/docs/topics/gateway). <br>
 And everything here was based on their docs. So, please read their docs before doing anything.
 
 ## Specs
@@ -28,3 +28,4 @@ And everything here was based on their docs. So, please read their docs before d
 
 ## License
 https://opensource.org/licenses/MIT
+https://github.com/ray-1337/expose-discord-activity/blob/main/LICENSE
