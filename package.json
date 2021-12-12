@@ -1,0 +1,12 @@
+{
+  "name": "expose-presence",
+  "version": "0.0.1",
+  "main": "main.js",
+  "author": "ray#1337",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "redis": "^4.0.0",
+    "ws": "^8.3.0"
+  }
+}
