@@ -58,7 +58,6 @@ ws.on("message", (raw) => {
       // for lurking
       // console.log(require("util").inspect(data, false, null, false));
 
-      // fastest way to stringify your stuff.
       let result = JSON.stringify(data.d);
 
       return redis.set("activity.ray1337", result)
