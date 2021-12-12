@@ -1,22 +1,11 @@
 const WebSocket = require("ws");
 const config = require("./config");
-const Redis = require("redis");
-const ws = new WebSocket(`wss://gateway.discord.gg/?v=${config.Gateway.v}&encoding=json`);
-require("dotenv").config();
 
-const identification = {
-  token: process.env.SECRET, // your bot token.
-  v: config.Gateway.v,
-  intents: 1 << 0 | 1 << 8 | 1 << 1 | 1 << 9, // https://abal.moe/Eris/docs/0.16.1/reference
-  properties: {
-    "$os": process.platform,
-    "$browser": "EXPOSE_ACTIVITIES",
-    "$device": "13373333"
-  }
-};
+// supported non-browser (for Server-side) only.
+const ws = new WebSocket(`wss://gateway.discord.gg/?v=${config.Identification.v}&encoding=json`);
 
-// ======================================== REMOVE THIS SECTION BELOW IF UNNEEEDED.
-const redis = Redis.createClient({
+// ========================================================== REMOVE THIS SECTION BELOW IF UNNEEEDED.
+const redis = require("redis").createClient({
   socket: {
     host: process.env["REDISENDPOINT"],
     port: Number(process.env["REDISPORT"]),
@@ -29,13 +18,11 @@ redis
 .on("error", (err) => console.error(`Redis (Error): ${err}`))
 .on("warning", (x) => console.warn(`Redis (Warning): ${x}`))
 .connect();
-// ======================================== REMOVE THIS SECTION ABOVE IF UNNEEEDED.
-
-let seq = 12; // what?
+// ========================================================== REMOVE THIS SECTION ABOVE IF UNNEEEDED.
 
 ws.on("open", () => {
-  let identifyRequest = JSON.stringify({op: config.OP.identify, d: identification});
-  let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: seq}); // i'll figure it out.
+  let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
+  let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: config.Constants.seq}); // i'll figure it out.
 
   // identification
   ws.send(identifyRequest, (err) => console.error(err));
@@ -46,15 +33,39 @@ ws.on("open", () => {
 
 ws.on("message", (raw) => {
   // rawWS is made out of Buffer. so you have to convert it into JSON. devhuman-readable.
-  let data = JSON.parse(Buffer.from(raw).toString("utf-8"));
+  let data;
+  try {
+    data = JSON.parse(Buffer.from(raw).toString("utf-8"));
+  } catch (err) {
+    data = null;
+    return console.error(err);
+  };
 
-  // its your choice.
-  // my strategy is to store my own activity on Redis. but you can do your own.
-  // like store it on some API, i dont know.
-  if (data.t === "PRESENCE_UPDATE" && data.op === config.OP.dispatch) {
-    return redis.set("activity.ray1337", JSON.stringify(data.d)).catch(console.error);
+  // failed parsing the JSON, well just break it.
+  if (!data) return;
+
+  /* 
+    its your choice.
+    my strategy here is to store my own activity on Redis. but you can do your own.
+    like store it to your API, database on MongoDB, i dont know.
+  */
+
+  if (
+    data.t === "PRESENCE_UPDATE" &&
+    data.d.user.id === config.Constants.userMonitoredID &&
+    data.op === config.OP.dispatch
+    ) {
+      // for lurking
+      // console.log(require("util").inspect(data, false, null, false));
+
+      // fastest way to stringify your stuff.
+      let result = JSON.stringify(data.d);
+
+      return redis.set("activity.ray1337", result)
+      .catch(console.error);
   };
 });
 
-ws.on("error", console.error);
-ws.on("close", console.log);
+ws
+.on("error", console.error)
+.on("close", console.log);

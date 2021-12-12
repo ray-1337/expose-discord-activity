@@ -2,11 +2,19 @@
   "name": "expose-presence",
   "version": "0.0.1",
   "main": "main.js",
-  "author": "ray#1337",
-  "license": "ISC",
+  "author": "https://13373333.one",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^10.0.0",
     "redis": "^4.0.0",
     "ws": "^8.3.0"
+  },
+  "homepage": "https://github.com/ray-1337/expose-discord-activity",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ray-1337/expose-discord-activity.git"
+  },
+  "engines": {
+    "npm": ">=14.x"
   }
 }
