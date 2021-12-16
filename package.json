@@ -15,6 +15,7 @@
     "url": "https://github.com/ray-1337/expose-discord-activity.git"
   },
   "engines": {
-    "npm": ">=14.x"
+    "node": ">=14.x",
+    "npm": ">=8.x"
   }
 }
