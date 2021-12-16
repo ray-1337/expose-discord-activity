@@ -2,7 +2,7 @@ const WebSocket = require("ws");
 const config = require("./config");
 
 // supported non-browser (for Server-side) only.
-const ws = new WebSocket(`wss://gateway.discord.gg/?v=${config.Identification.v}&encoding=json`);
+let ws = new WebSocket(`wss://gateway.discord.gg/?v=${config.Identification.v}&encoding=json`);
 
 // ========================================================== REMOVE THIS SECTION BELOW IF UNNEEDED.
 const redis = require("redis").createClient({
@@ -70,7 +70,7 @@ ws.on("message", (raw) => {
         try {
           if (config.Constants.sessionID) {
             if (ws.readyState === ws.OPEN) {
-              console.log("reconnecting.")
+              console.log("reconnecting.");
               ws.close(4901, "reconnect.");
             }
 
