@@ -2,7 +2,7 @@ require("dotenv").config();
 
 module.exports = {
   OP: {
-    // i only store the important opcodes only.
+    // only store the important opcodes only.
     // https://discord.com/developers/docs/topics/opcodes-and-status-codes
     dispatch: 0,
     heartbeat: 1,
@@ -18,7 +18,9 @@ module.exports = {
   Constants: {
     // i still have no idea.
     // dont change this unless you know what you're doing.
-    seq: 1337,
+    seq: 13373333,
+
+    // default, discord will figure it out.
     heartbeatTimeout: 1000 * 30,
 
     // https://www.remote.tools/remote-work/how-to-find-discord-id

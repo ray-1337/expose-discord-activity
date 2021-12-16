@@ -20,19 +20,11 @@ redis
 .connect();
 // ========================================================== REMOVE THIS SECTION ABOVE IF UNNEEDED.
 
-let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
-let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: config.Constants.seq});
-
-ws.on("open", () => {
-  // identification
-  ws.send(identifyRequest);
-
-  // heartbeat, to stay connected.
-  config.Constants.heartbeatInterval = setInterval(() => ws.send(heartbeat), config.Constants.heartbeatTimeout);
-});
-
 ws.on("message", (raw) => {
   // raw Websocket data is made out of Buffer. so you have to convert it into JSON. devhuman-readable.
+
+  if (!raw) return;
+
   let data;
   try {
     data = JSON.parse(Buffer.from(raw).toString("utf-8"));
@@ -45,6 +37,9 @@ ws.on("message", (raw) => {
   if (!data) return;
   // console.log(data);
 
+  let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
+  let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: config.Constants.seq});
+
   switch(data.op) {
     case config.OP.dispatch:
       if (data.t === "READY") {
@@ -54,15 +49,15 @@ ws.on("message", (raw) => {
       break;
 
     case config.OP.heartbeat:
-      console.log("heartbeat.");
       ws.send(heartbeat);
+      console.log("heartbeat.");
       break;
     
     case config.OP.invalidSession:
-      console.warn("invalid session, identifying.");
       config.Constants.seq = 0;
       config.Constants.sessionID = null;
       ws.send(identifyRequest);
+      console.warn("invalid session, identifying.");
       break;
 
     case config.OP.reconnect:
@@ -74,9 +69,19 @@ ws.on("message", (raw) => {
       if (ws.readyState !== ws.CLOSED /*&& ws.readyState !== ws.CLOSING*/) {
         try {
           if (config.Constants.sessionID) {
-            if (ws.readyState === ws.OPEN) ws.close(4901, "reconnect.");
-            else ws.terminate();
-          } else ws.close(1000, "continue.");
+            if (ws.readyState === ws.OPEN) {
+              console.log("reconnecting.")
+              ws.close(4901, "reconnect.");
+            }
+
+            else {
+              console.warn("terminated.");
+              ws.terminate();
+            }
+          } else {
+            console.log("session continued.");
+            ws.close(1000, "continue.");
+          };
         } catch (error) {
           console.error(error);
         };
@@ -105,6 +110,10 @@ ws.on("message", (raw) => {
         ws.send(identifyRequest);
         ws.send(heartbeat);
       };
+      break;
+
+    // you and i dont need to know this.
+    case config.OP.heartbeatACK:
       break;
     
     default:
