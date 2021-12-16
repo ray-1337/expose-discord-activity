@@ -20,19 +20,19 @@ redis
 .connect();
 // ========================================================== REMOVE THIS SECTION ABOVE IF UNNEEDED.
 
-ws.on("open", () => {
-  let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
-  let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: config.Constants.seq}); // i'll figure it out.
+let identifyRequest = JSON.stringify({op: config.OP.identify, d: config.Identification});
+let heartbeat = JSON.stringify({op: config.OP.heartbeat, d: config.Constants.seq});
 
+ws.on("open", () => {
   // identification
-  ws.send(identifyRequest, (err) => console.error(err));
+  ws.send(identifyRequest);
 
   // heartbeat, to stay connected.
-  setInterval(() => ws.send(heartbeat), config.Constants.heartbeatTimeout);
+  config.Constants.heartbeatInterval = setInterval(() => ws.send(heartbeat), config.Constants.heartbeatTimeout);
 });
 
 ws.on("message", (raw) => {
-  // rawWS is made out of Buffer. so you have to convert it into JSON. devhuman-readable.
+  // raw Websocket data is made out of Buffer. so you have to convert it into JSON. devhuman-readable.
   let data;
   try {
     data = JSON.parse(Buffer.from(raw).toString("utf-8"));
@@ -45,23 +45,71 @@ ws.on("message", (raw) => {
   if (!data) return;
   // console.log(data);
 
-  // Ready
-  if (data.t === "READY" && data.op === config.OP.dispatch) {
-    config.Constants.sessionID = data.d.session_id;
-    console.log("ready.");
-  };
+  switch(data.op) {
+    case config.OP.dispatch:
+      if (data.t === "READY") {
+        config.Constants.sessionID = data.d.session_id;
+        console.log("ready.");
+      };
+      break;
 
-  // Resuming when Disconnection happens (WIP, may broke, because it's untested.)
-  if (data.op === config.OP.resume) {
-    console.log("resuming.");
-    ws.send(JSON.stringify({
-      op: config.OP.resume,
-      d: {
-        token: config.Identification.token,
-        session_id: config.Constants.sessionID,
-        seq: config.Constants.seq
-      }
-    }));
+    case config.OP.heartbeat:
+      console.log("heartbeat.");
+      ws.send(heartbeat);
+      break;
+    
+    case config.OP.invalidSession:
+      console.warn("invalid session, identifying.");
+      config.Constants.seq = 0;
+      config.Constants.sessionID = null;
+      ws.send(identifyRequest);
+      break;
+
+    case config.OP.reconnect:
+      if (!ws) return;
+
+      clearInterval(config.Constants.heartbeatInterval);
+      config.Constants.heartbeatInterval = null;
+
+      if (ws.readyState !== ws.CLOSED /*&& ws.readyState !== ws.CLOSING*/) {
+        try {
+          if (config.Constants.sessionID) {
+            if (ws.readyState === ws.OPEN) ws.close(4901, "reconnect.");
+            else ws.terminate();
+          } else ws.close(1000, "continue.");
+        } catch (error) {
+          console.error(error);
+        };
+      };
+
+      ws = null;
+      break;
+
+    case config.OP.HELLO:
+      if (data.d.heartbeat_interval > 0) {
+        if (config.Constants.heartbeatInterval) clearInterval(config.Constants.heartbeatInterval);
+        config.Constants.heartbeatInterval = setInterval(() => ws.send(heartbeat), data.d.heartbeat_interval);
+      };
+
+      if (config.Constants.sessionID) {
+        console.log("resuming the connection.");
+        ws.send(JSON.stringify({
+          op: config.OP.resume,
+          d: {
+            token: config.Identification.token,
+            session_id: config.Constants.sessionID,
+            seq: config.Constants.seq
+          }
+        }));
+      } else {
+        ws.send(identifyRequest);
+        ws.send(heartbeat);
+      };
+      break;
+    
+    default:
+      console.log(data);
+      break;
   };
 
   /* 
@@ -85,6 +133,8 @@ ws.on("message", (raw) => {
   };
 });
 
-ws
-.on("error", console.error)
-.on("close", console.log);
+ws.on("error", console.error);
+
+ws.on("close", (code, reason) => {
+  console.log(code, Buffer.from(reason).toString());
+});

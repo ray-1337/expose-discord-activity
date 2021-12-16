@@ -7,7 +7,12 @@ module.exports = {
     dispatch: 0,
     heartbeat: 1,
     identify: 2,
-    resume: 6
+    presenceUpdate: 3,
+    resume: 6,
+    reconnect: 7,
+    invalidSession: 9,
+    HELLO: 10,
+    heartbeatACK: 11
   },
 
   Constants: {
@@ -20,7 +25,10 @@ module.exports = {
     userMonitoredID: "331265944363991042",
 
     // for resuming. so your app wont ded immediately, so you have to send the request again. (afaik)
-    sessionID: null
+    sessionID: null,
+
+    // setinterval func
+    heartbeatInterval: null
   },
 };
 
